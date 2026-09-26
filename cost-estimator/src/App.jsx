@@ -1,282 +1,167 @@
-import React, { Component } from 'react';
-class App extends Component {
-  constructor() {
-    super();
-    this.state = {
-      data: 
-        [
-          {
-            "name": "GIIS Project",
-            "client": "Singpoore Government",
-            "statusBadge": "In Progress",
-            "owner": "Sandeep Metta",
-            "dateRange": "2022-01-01 to 2028-12-31",
-            "hours": 120,
-            "cost": 5000
-          },
-          {
-            "name": "BlazeUP Project",
-            "client": "TerraLogic Software Solutions",
-            "statusBadge": "Completed",
-            "owner": "Renil Komitla",
-            "dateRange": "2024-02-15 to 2027-08-30",
-            "hours": 200,
-            "cost": 8000
-          },
-          {
-            "name": "Lollipop Project",
-            "client": "TerraLogic Software Solutions",
-            "statusBadge": "In Progress",
-            "owner": "Ajay Kumar",
-            "dateRange": "2023-05-10 to 2026-11-20",
-            "hours": 150,
-            "cost": 6000
-          },
-          {
-            "name": "Caramelo Project",
-            "client": "TerraLogic Software Solutions",
-            "statusBadge": "Completed",
-            "owner": "Sandeep Metta",
-            "dateRange": "2022-09-01 to 2025-03-15",
-            "hours": 180,
-            "cost": 7000
-          }
-        ]
-      // [
-      //   {
-      //     "name": "John Doe",
-      //   },
-      //   {
-      //     "name": "Jane Danial"
-      //   },
-      //   {
-      //     "name": "John Smith"
-      //   }
-      // ]
-    }
-  }
-  render() {
-    return (
-      <div>
+import { useState } from "react";
+import "./App.css";
 
-        <ProjectSDetailsPage />
-        {this.state.data.map((item) => <Project data = {item} />)}
-        {/* <StudentName/>
-        <ul>
-          {this.state.data.map((item) => <List data = {item} />)}
-        </ul> */}
-      </div>
+const roles = {
+  frontend: { name: "Frontend Developer", rate: 800 },
+  backend: { name: "Backend Developer", rate: 900 },
+  tester: { name: "Tester", rate: 600 },
+};
+
+const inr = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  maximumFractionDigits: 0,
+});
+
+function createEmptyTask() {
+  return {
+    id: globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`,
+    name: "",
+    roleId: "frontend",
+    hours: "",
+  };
+}
+
+function formatWorkingTime(hours) {
+  const total = Math.max(0, Math.floor(hours));
+  const months = Math.floor(total / 160);
+  const weeks = Math.floor((total % 160) / 40);
+  const days = Math.floor((total % 40) / 8);
+  const remainingHours = total % 8;
+  const parts = [];
+
+  if (months) parts.push(`${months} ${months === 1 ? "month" : "months"}`);
+  if (weeks) parts.push(`${weeks} ${weeks === 1 ? "week" : "weeks"}`);
+  if (days) parts.push(`${days} ${days === 1 ? "day" : "days"}`);
+  if (remainingHours || parts.length === 0) {
+    parts.push(`${remainingHours} ${remainingHours === 1 ? "hour" : "hours"}`);
+  }
+
+  return `${parts.join(", ")} (${total.toLocaleString("en-IN")} hours)`;
+}
+
+function App() {
+  const [tasks, setTasks] = useState([]);
+
+  function handleTaskChange(id, field, value) {
+    setTasks((current) =>
+      current.map((task) => (task.id === id ? { ...task, [field]: value } : task)),
     );
   }
+
+  const totalHours = tasks.reduce((sum, task) => sum + (Number(task.hours) || 0), 0);
+  const totalCost = tasks.reduce((sum, task) => {
+    return sum + (Number(task.hours) || 0) * roles[task.roleId].rate;
+  }, 0);
+
+  return (
+    <main className="app-shell">
+      <header className="page-header">
+        <p className="eyebrow">Project planner</p>
+        <h1>Cost estimation</h1>
+        <p className="page-description">
+          Add tasks and adjust roles or hours to see your estimate update instantly.
+        </p>
+      </header>
+
+      <section className="estimator-card" aria-labelledby="tasks-heading">
+        <div className="section-heading">
+          <div>
+            <h2 id="tasks-heading">Tasks</h2>
+            <p>Each role has an hourly rate that contributes to the total.</p>
+          </div>
+          <button className="add-button" onClick={() => setTasks((current) => [...current, createEmptyTask()])}>
+            <span aria-hidden="true">+</span> Add task
+          </button>
+        </div>
+
+        {tasks.length === 0 ? (
+          <div className="empty-state">
+            <span className="empty-icon" aria-hidden="true">SmartEstimate</span>
+            <h3>No tasks yet</h3>
+            <p>Add a task to start building your project estimate.</p>
+          </div>
+        ) : (
+          <>
+            <div className="task-list">
+              {tasks.map((task, index) => {
+                const hours = Number(task.hours) || 0;
+                const cost = hours * roles[task.roleId].rate;
+
+                return (
+                  <article className="task-row" key={task.id}>
+                    <div className="task-index">{String(index + 1).padStart(2, "0")}</div>
+                    <label className="field task-name-field">
+                      <span>Task name</span>
+                      <input
+                        type="text"
+                        placeholder="e.g. Design the dashboard"
+                        value={task.name}
+                        onChange={(event) => handleTaskChange(task.id, "name", event.target.value)}
+                      />
+                    </label>
+                    <label className="field">
+                      <span>Role</span>
+                      <select
+                        value={task.roleId}
+                        onChange={(event) => handleTaskChange(task.id, "roleId", event.target.value)}
+                      >
+                        {Object.entries(roles).map(([id, role]) => (
+                          <option key={id} value={id}>{role.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="field hours-field">
+                      <span>Time</span>
+                      <div className="hours-input">
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          placeholder="0"
+                          value={task.hours}
+                          onChange={(event) => handleTaskChange(task.id, "hours", event.target.value)}
+                        />
+                        <span>hrs</span>
+                      </div>
+                    </label>
+                    <div className="task-cost">
+                      <span>Estimate</span>
+                      <strong>{hours > 0 ? inr.format(cost) : "—"}</strong>
+                    </div>
+                    <button
+                      className="delete-button"
+                      onClick={() => setTasks((current) => current.filter((item) => item.id !== task.id))}
+                      aria-label={`Delete ${task.name || `task ${index + 1}`}`}
+                      title="Delete task"
+                    >
+                      <span aria-hidden="true">×</span>
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+
+            <section className="summary" aria-label="Project estimate summary">
+              <div className="summary-item">
+                <span>Total tasks</span>
+                <strong>{tasks.length}</strong>
+              </div>
+              <div className="summary-item summary-time">
+                <span>Total time</span>
+                <strong>{formatWorkingTime(totalHours)}</strong>
+              </div>
+              <div className="summary-item summary-total">
+                <span>Estimated cost</span>
+                <strong>{inr.format(totalCost)}</strong>
+              </div>
+            </section>
+          </>
+        )}
+      </section>
+      <p className="rate-note">Rates: Frontend Developer ₹800/hr · Backend Developer ₹900/hr · Tester ₹600/hr</p>
+    </main>
+  );
 }
-
-class StudentName extends React.Component {
-  render() {
-    return (
-      <div>
-        <h1>Student Name Detail</h1>
-      </div>
-    );
-  }
-}
-
-class List extends React.Component {
-  render() {
-    return (
-      <ul>
-        <li>{this.props.data.name}</li>
-      </ul>
-    );
-  }
-}
-
-class ProjectSDetailsPage extends React.Component {
-  render() {
-    return (
-      <div>
-        <h1 style={{ margin: 100 }}>Project Details Page</h1>
-        {/* <Project data = {this.props.data} /> */}
-      </div>
-    );
-  }
-}
-
-
-class Project extends React.Component {
-  render() {
-    return (
-      <div style={{ margin: 100, border: '1px solid gray', padding: 20 }}>
-        <h2>Project Name: {this.props.data.name}</h2>
-        <h3>Client: {this.props.data.client}</h3>
-        <h3>Status Badge: {this.props.data.statusBadge}</h3>
-        <h3>Owner: {this.props.data.owner}</h3>
-        <h3>Date Range: {this.props.data.dateRange}</h3>
-        <h3>Hours: {calculateTotalHours(calculateNoOfWorkingDays(this.props.data.dateRange))}</h3>
-        <h3>Cost: {calculateTotalCost(this.props.data.dateRange)}</h3>
-      </div>
-    );
-  }
-}
-
-
-function calculateNoOfWorkingDays(dateRange) {
-
-
-
-const [startDate, endDate] = dateRange.split(' to ').map(date => new Date(date));
-
-const totalWeeks = Math.floor((endDate - startDate) / (7 * 24 * 60 * 60 * 1000));
-const totalDays = totalWeeks * 5; // 5 working days in a week
-
-//this function returns number of working days
-return totalDays;
-}
-
-function calculateTotalHours(days) {
-
-  const totalHours = days * 8; // Assuming 8 working hours in a day
-  // this calls the calculateNoOfWorkingDays function
-  return totalHours;
-}
-
-function calculateTotalCost(dateRange) {
-
-  const hourlyPay = 40;
-
-  const totalHours = calculateTotalHours(calculateNoOfWorkingDays(dateRange));
-  const cost = totalHours * hourlyPay; // Assuming $40 per hour
-
-  // this calls the calculateTotalHours function
-  return cost;
-}
-
 
 export default App;
-
-
-
-
-
-
-// import { useState } from 'react'
-// import heroImg from './assets/hero.png'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from './assets/vite.svg'
-// import './App.css'
-
-// function App() {
-//   const [count, setCount] = useState(0)
-
-//   return (
-//     <>
-//       <section id="center">
-//         <div className="hero">
-//           <img src={heroImg} className="base" width="170" height="179" alt="" />
-//           <img src={reactLogo} className="framework" alt="React logo" />
-//           <img src={viteLogo} className="vite" alt="Vite logo" />
-//         </div>
-//         <div>
-//           <h1>Get started</h1>
-//           <p>
-//             Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-//           </p>
-//         </div>
-//         <button
-//           type="button"
-//           className="counter"
-//           onClick={() => setCount((count) => count + 1)}
-//         >
-//           Count is {count}
-//         </button>
-//       </section>
-
-//       <div className="ticks"></div>
-
-//       <section id="next-steps">
-//         <div id="docs">
-//           <svg className="icon" role="presentation" aria-hidden="true">
-//             <use href="/icons.svg#documentation-icon"></use>
-//           </svg>
-//           <h2>Documentation</h2>
-//           <p>Your questions, answered</p>
-//           <ul>
-//             <li>
-//               <a href="https://vite.dev/" target="_blank">
-//                 <img className="logo" src={viteLogo} alt="" />
-//                 Explore Vite
-//               </a>
-//             </li>
-//             <li>
-//               <a href="https://react.dev/" target="_blank">
-//                 <img className="button-icon" src={reactLogo} alt="" />
-//                 Learn more
-//               </a>
-//             </li>
-//           </ul>
-//         </div>
-//         <div id="social">
-//           <svg className="icon" role="presentation" aria-hidden="true">
-//             <use href="/icons.svg#social-icon"></use>
-//           </svg>
-//           <h2>Connect with us</h2>
-//           <p>Join the Vite community</p>
-//           <ul>
-//             <li>
-//               <a href="https://github.com/vitejs/vite" target="_blank">
-//                 <svg
-//                   className="button-icon"
-//                   role="presentation"
-//                   aria-hidden="true"
-//                 >
-//                   <use href="/icons.svg#github-icon"></use>
-//                 </svg>
-//                 GitHub
-//               </a>
-//             </li>
-//             <li>
-//               <a href="https://chat.vite.dev/" target="_blank">
-//                 <svg
-//                   className="button-icon"
-//                   role="presentation"
-//                   aria-hidden="true"
-//                 >
-//                   <use href="/icons.svg#discord-icon"></use>
-//                 </svg>
-//                 Discord
-//               </a>
-//             </li>
-//             <li>
-//               <a href="https://x.com/vite_js" target="_blank">
-//                 <svg
-//                   className="button-icon"
-//                   role="presentation"
-//                   aria-hidden="true"
-//                 >
-//                   <use href="/icons.svg#x-icon"></use>
-//                 </svg>
-//                 X.com
-//               </a>
-//             </li>
-//             <li>
-//               <a href="https://bsky.app/profile/vite.dev" target="_blank">
-//                 <svg
-//                   className="button-icon"
-//                   role="presentation"
-//                   aria-hidden="true"
-//                 >
-//                   <use href="/icons.svg#bluesky-icon"></use>
-//                 </svg>
-//                 Bluesky
-//               </a>
-//             </li>
-//           </ul>
-//         </div>
-//       </section>
-
-//       <div className="ticks"></div>
-//       <section id="spacer"></section>
-//     </>
-//   )
-// }
-
-// export default App
