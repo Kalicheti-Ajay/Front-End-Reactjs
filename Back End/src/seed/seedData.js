@@ -2,14 +2,14 @@ import bcrypt from 'bcryptjs'
 import User from '../models/User.js'
 import Project from '../models/Project.js'
 const userSeeds = [
-  ['Sandeep','Kumar','Metta','Senior Product Manager','Engineering','sandeep@example.com'],
-  ['Renil','','Komtila','Technical Lead','Platform','renil@example.com'],
-  ['Ajay','Kumar','Kalicheti','Delivery Manager','Operations','ajay@example.com'],
-  ['Lina','','Dsouza','Business Analyst','Strategy','lina@example.com'],
+  ['Jashwitha','Dandi','','Senior Product Manager','Engineering','jashwitha@example.com'],
+  ['Pranadeep','Dandi','','Technical Lead','Platform','prandeep@example.com'],
+  ['Deepika','Meda','','Delivery Manager','Operations','deepika@example.com'],
+  ['Param','Joe','','Business Analyst','Strategy','joe@example.com'],
   ['Nisha','V','Iyer','UX Designer','Design','nisha@example.com'],
 ]
 export default async function seedInitialData() {
-  const passwordHash = await bcrypt.hash(process.env.SEED_PASSWORD || 'ChangeMe123!', 10)
+  const passwordHash = await bcrypt.hash(process.env.SEED_PASSWORD || 'jashwitha@123', 10)
   const users = []
   for (const [firstName,middleName,lastName,role,branch,email] of userSeeds) {
     const user = await User.findOneAndUpdate({ email }, { $setOnInsert: { firstName,middleName,lastName,role,branch,email,passwordHash } }, { upsert: true, new: true, setDefaultsOnInsert: true })
