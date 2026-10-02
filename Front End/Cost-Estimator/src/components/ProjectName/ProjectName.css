@@ -1,0 +1,19 @@
+.project-name {
+  min-width: 0;
+}
+
+.project-name__title {
+  margin: 0 0 5px;
+  color: #172033;
+  font-family: Manrope, 'Segoe UI', sans-serif;
+  font-size: 1.18rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+}
+
+.project-name__client {
+  color: var(--color-muted);
+  font-size: 0.83rem;
+  line-height: 1.5;
+}
