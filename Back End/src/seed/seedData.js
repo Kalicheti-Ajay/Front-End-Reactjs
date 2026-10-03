@@ -9,7 +9,7 @@ const userSeeds = [
   ['Nisha','V','Iyer','UX Designer','Design','nisha@example.com'],
 ]
 export default async function seedInitialData() {
-  const passwordHash = await bcrypt.hash(process.env.SEED_PASSWORD || 'ChangeMe123!', 10)
+  const passwordHash = await bcrypt.hash(process.env.SEED_PASSWORD || 'ajay@123', 10)
   const users = []
   for (const [firstName,middleName,lastName,role,branch,email] of userSeeds) {
     const user = await User.findOneAndUpdate({ email }, { $setOnInsert: { firstName,middleName,lastName,role,branch,email,passwordHash } }, { upsert: true, new: true, setDefaultsOnInsert: true })
